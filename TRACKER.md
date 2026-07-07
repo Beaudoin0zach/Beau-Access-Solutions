@@ -66,7 +66,10 @@ things move — this is the single place to see where everything stands.
 - ⬜ Hardening checklist (admin-console lockdown, patching cadence)
 - ⬜ Login theme re-themed to pass WCAG 2.2 AA
 - ⬜ OIDC clients per app + `aud`/`azp` isolation
+- ⬜ Pairwise subject identifiers per client ([ADR-003](docs/adr/003-pairwise-subject-identifiers.md))
 - ⬜ 2FA + step-up (ACR/LoA) policy
+- ⬜ DR: Keycloak DB backup/restore + token signing-key rotation + availability target
+- ⬜ Existing-user migration runbook — CIT first ([ADR-004](docs/adr/004-existing-user-migration.md))
 
 ---
 
@@ -87,7 +90,10 @@ things move — this is the single place to see where everything stands.
 - ⏳ **access-directory needs a git remote** before its pointer commit can push.
 - ⏳ **a11y-probe is an unborn repo** (0 commits, no remote); pointer sits untracked until it's initialized.
 - ⬜ **Merge the four pointer PRs** (links in §1).
-- ⬜ **Push governance repo** — ✅ done (`main` live).
+- ✅ **Push governance repo** — done (`main` live).
+- ⬜ **Cross-app correlation** — adopt pairwise `sub` ([ADR-003](docs/adr/003-pairwise-subject-identifiers.md)) before any app stores a shared identifier.
+- ⬜ **Existing-user migration** into Keycloak ([ADR-004](docs/adr/004-existing-user-migration.md)) — CIT reference runbook, then KA + Benefits Navigator.
+- ⏳ **Benefits Navigator data posture** — veteran data may carry Privacy Act / VA obligations distinct from HIPAA; determine like CIT's HIPAA question.
 - ⬜ **Marketing-site GitHub repo name** — governance owns `Beau-Access-Solutions`; the site needs a different repo name (e.g. `bas-website`) when pushed.
 - ⬜ Decide the shared-frontend repo name (`design-system`) when Phase 0 needs shared code.
 
@@ -99,5 +105,7 @@ things move — this is the single place to see where everything stands.
 - [INVARIANTS.md](INVARIANTS.md) — the five platform invariants
 - [ADR-001](docs/adr/001-platform-architecture-and-identity.md) — shared platform + standalone Keycloak identity
 - [ADR-002](docs/adr/002-umbrella-org-and-repo-topology.md) — BAS umbrella, repo topology, no committed cross-repo symlinks
+- [ADR-003](docs/adr/003-pairwise-subject-identifiers.md) — pairwise subject identifiers (no cross-app correlation)
+- [ADR-004](docs/adr/004-existing-user-migration.md) — migrating existing users into Keycloak
 - CIT `docs/adr/004` — CIT-side pointer to the identity decision
 - CIT `docs/mobile/PLAN.md` — native build plan; `docs/mobile/auth-token-exchange.md` — token-exchange spec

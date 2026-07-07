@@ -17,6 +17,8 @@ repos (a governance **org**, not a mono-repo — trust boundary = repo boundary)
 - **[docs/adr/](docs/adr/)** — architecture decision records:
   - [ADR-001](docs/adr/001-platform-architecture-and-identity.md) — shared platform + standalone Keycloak identity.
   - [ADR-002](docs/adr/002-umbrella-org-and-repo-topology.md) — the BAS umbrella, repo topology, no committed cross-repo symlinks.
+  - [ADR-003](docs/adr/003-pairwise-subject-identifiers.md) — pairwise subject identifiers, so no two apps can correlate a shared user.
+  - [ADR-004](docs/adr/004-existing-user-migration.md) — migrating existing per-app users into Keycloak without a mass reset.
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** — how apps join the platform; the PHI contribution boundary.
 - **[.github/CODEOWNERS](.github/CODEOWNERS)** — decisions require owner review.
 
