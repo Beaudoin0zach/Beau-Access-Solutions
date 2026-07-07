@@ -19,7 +19,12 @@ docker compose -f identity/dev/docker-compose.yml up
 
 ## Configure the CIT client (dev)
 
-Follow [hardening §3](../../docs/keycloak-setup-and-hardening.md) — the dev values:
+Fastest path: run the reference bootstrap (`realm/bootstrap.sh`) against the running
+container, then tweak in the admin console. It creates the `bas` realm + `cit-web`
+client with PKCE, pairwise `sub`, and audience scoping. It's a *reference* — validate
+mapper names against the pinned KC version, then export (below) as the source of truth.
+
+Or do it by hand — follow [hardening §3](../../docs/keycloak-setup-and-hardening.md), the dev values:
 
 1. **Realm:** create `bas`.
 2. **Client `cit-web`** (public, for the Next.js/Expo client):
