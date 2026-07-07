@@ -20,11 +20,11 @@ things move — this is the single place to see where everything stands.
 | **page-repair** | Standalone; patterns → `ui` | Browser extension | `LangworthyWatch/page-repair` | ✅ branch pushed · ⬜ PR not opened | n/a |
 | **Marketing site** | Company site (not a platform app) | Astro + Netlify | local only (unpushed) | — | n/a |
 
-**Pointer-PR rollout — branches pushed, but no PRs opened yet.** Open them here:
-- CIT — <https://github.com/kbeaudoin001/Chronic-Illness-Tracker/compare/fix/security-audit-batch-4...docs/bas-platform-pointer>
-- KindredAccess — <https://github.com/Beaudoin0zach/kindredaccess/compare/main...docs/bas-platform-pointer>
-- Benefits Navigator — <https://github.com/Beaudoin0zach/benefits_navigator/compare/main...docs/bas-platform-pointer>
-- page-repair — <https://github.com/LangworthyWatch/page-repair/compare/main...docs/bas-platform-pointer>
+**Pointer-PR rollout — all four are now clean one-commit branches off `main`, ready to open.** Open them here:
+- CIT — <https://github.com/kbeaudoin001/Chronic-Illness-Tracker/compare/main...docs/bas-platform-pointer> (rebased onto main + squashed)
+- KindredAccess — <https://github.com/Beaudoin0zach/kindredaccess/compare/main...docs/bas-platform-pointer> (direct merge-to-main blocked by safety classifier — open the PR, or add a Bash permission rule)
+- Benefits Navigator — <https://github.com/Beaudoin0zach/benefits_navigator/compare/main...docs/bas-platform-pointer> (rebased onto main)
+- page-repair — <https://github.com/LangworthyWatch/page-repair/compare/main...docs/bas-platform-pointer> (third-party repo)
 
 ---
 
