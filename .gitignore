@@ -1,0 +1,6 @@
+# Local navigation symlinks to the app repos — machine-local, never committed.
+# (Committed cross-repo symlinks dangle on clone and die in CI; these stay local.)
+/repos/
+
+.DS_Store
+*.log

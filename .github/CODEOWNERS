@@ -1,0 +1,9 @@
+# Platform decisions require owner review. Keep this in sync as maintainers are added.
+# (Per-app PHI repos carry their own CODEOWNERS — this file governs THIS repo only.)
+
+*                       @Beaudoin0zach
+
+# Decision-of-record surfaces — always owner-reviewed.
+/PLATFORM.md            @Beaudoin0zach
+/INVARIANTS.md          @Beaudoin0zach
+/docs/adr/              @Beaudoin0zach
