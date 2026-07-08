@@ -17,14 +17,14 @@ things move — this is the single place to see where everything stands.
 | **Benefits Navigator** | Candidate (sensitive) | Django + AI | `Beaudoin0zach/benefits_navigator` | ✅ branch pushed · ⬜ PR not opened | ⬜ |
 | **Access Atlas** (access-directory) | Member (identity) | Astro | `Beaudoin0zach/access-atlas` | ✅ pointer on `main` · 🟡 invariant branch pushed, PR not opened | 🟡 onboarded · invariants #2/#3/#4 ✅ · identity #1/#5 ⏳ |
 | **a11y-probe** | Standalone / CI a11y | Reddit Devvit | none | ⏳ untracked (unborn repo) | n/a |
-| **page-repair** | Standalone; patterns → `ui` | Browser extension | `LangworthyWatch/page-repair` | ✅ branch pushed · ⬜ PR not opened | n/a |
+| **page-repair** | Standalone; patterns → `ui` | Browser extension | `Beaudoin0zach/page-repair` (private; moved off `LangworthyWatch`) | ✅ `main` pushed to own account | n/a |
 | **Marketing site** | Company site (not a platform app) | Astro + Netlify | local only (unpushed) | — | n/a |
 
 **Pointer-PR rollout — all four are now clean one-commit branches off `main`, ready to open.** Open them here:
 - CIT — <https://github.com/kbeaudoin001/Chronic-Illness-Tracker/compare/main...docs/bas-platform-pointer> (rebased onto main + squashed)
 - KindredAccess — <https://github.com/Beaudoin0zach/kindredaccess/compare/main...docs/bas-platform-pointer> (direct merge-to-main blocked by safety classifier — open the PR, or add a Bash permission rule)
 - Benefits Navigator — <https://github.com/Beaudoin0zach/benefits_navigator/compare/main...docs/bas-platform-pointer> (rebased onto main)
-- page-repair — <https://github.com/LangworthyWatch/page-repair/compare/main...docs/bas-platform-pointer> (third-party repo)
+- page-repair — now `Beaudoin0zach/page-repair` (owned, private); pointer branch not yet created on the new remote
 
 ---
 
