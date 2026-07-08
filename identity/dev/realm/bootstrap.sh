@@ -19,7 +19,13 @@ set -euo pipefail
 KC=/opt/keycloak/bin/kcadm.sh
 REALM="${REALM:-bas}"
 CIT_REDIRECT_WEB="${CIT_REDIRECT_WEB:-http://localhost:3000/api/auth/session*}"
-CIT_REDIRECT_NATIVE="${CIT_REDIRECT_NATIVE:-com.beauaccesssolutions.cit://oauth*}" # Expo AppAuth scheme
+# Native redirect for the CIT Expo app (bas-apps/apps/cit). cit-web is the single
+# CIT public/PKCE client for BOTH web and native, so the same user has one pairwise
+# sub across surfaces and the backend needs no azp change. The scheme is the app's
+# reverse-DNS scheme registered in app.json; Expo's makeRedirectUri({scheme, path:'oauth'})
+# produces exactly this. A separate cit-mobile client is a possible future hardening
+# (needs the backend to allow azp ∈ {cit-web, cit-mobile}).
+CIT_REDIRECT_NATIVE="${CIT_REDIRECT_NATIVE:-com.beauaccesssolutions.cit://oauth*}"
 ACCESS_TOKEN_LIFESPAN="${ACCESS_TOKEN_LIFESPAN:-300}"  # 5 min — short-lived identity token
 
 # Pairwise-sub salts (ADR-003). Dev defaults are placeholders; PROD MUST pass strong,
@@ -159,5 +165,9 @@ Done (reference run). Next:
   - Add a test user with a verified email.
   - Export the realm and commit it as the authoritative config:
       $KC get realms/$REALM -r $REALM > /opt/keycloak/data/import/realm/bas-realm.json
-  - Set CIT env: KEYCLOAK_ISSUER=<issuer>/realms/$REALM, KEYCLOAK_CLIENT_ID=cit-web
+  - Set CIT backend env: KEYCLOAK_ISSUER=<issuer>/realms/$REALM, KEYCLOAK_CLIENT_ID=cit-web
+  - Set CIT native app env (bas-apps/apps/cit/.env):
+      EXPO_PUBLIC_KEYCLOAK_ISSUER=<issuer>/realms/$REALM
+      EXPO_PUBLIC_KEYCLOAK_CLIENT_ID=cit-web
+      EXPO_PUBLIC_APP_SCHEME=com.beauaccesssolutions.cit
 EOF
