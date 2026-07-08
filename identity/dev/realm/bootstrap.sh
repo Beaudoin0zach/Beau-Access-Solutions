@@ -13,7 +13,9 @@
 #
 # Usage (against the local dev Keycloak):
 #   docker compose -f identity/dev/docker-compose.yml exec keycloak \
-#     bash /opt/keycloak/data/import/realm/bootstrap.sh
+#     bash /opt/keycloak/data/import/bootstrap.sh
+# (The compose mounts ./realm -> /opt/keycloak/data/import, so the script lands at
+#  /opt/keycloak/data/import/bootstrap.sh — NOT under a realm/ subdir.)
 set -euo pipefail
 
 KC=/opt/keycloak/bin/kcadm.sh
@@ -34,6 +36,16 @@ ACCESS_TOKEN_LIFESPAN="${ACCESS_TOKEN_LIFESPAN:-300}"  # 5 min — short-lived i
 #    stored identity rows (KindredAccess KeycloakIdentity, CIT oidcSub, ...).
 CIT_PAIRWISE_SALT="${CIT_PAIRWISE_SALT:-cit-sector-salt-dev}"
 KA_PAIRWISE_SALT="${KA_PAIRWISE_SALT:-ka-sector-salt-dev}"
+
+# Sector Identifier URI for cit-web (ADR-003). cit-web serves BOTH web and native, so its
+# redirect URIs span multiple hosts — and Keycloak's pairwise-sub mapper then REQUIRES a
+# Sector Identifier URI: a reachable HTTPS doc returning a JSON array of cit-web's redirect
+# URIs. Keycloak FETCHES and validates it at mapper-create time. Without it the pairwise
+# mapper is REJECTED and cit-web silently falls back to a NON-pairwise (correlatable) sub —
+# an ADR-003 breach. Prod: host it at e.g. https://id.<domain>/oidc/cit-web-sector.json (see
+# the deploy runbook) and set CIT_SECTOR_URI to it. Leave empty ONLY for a throwaway dev run
+# — the guard at the end WARNs loudly in that case and FAILs hard when the URI is set but bad.
+CIT_SECTOR_URI="${CIT_SECTOR_URI:-}"
 
 # 1. Authenticate (dev creds; prod uses a locked-down admin — hardening §2).
 "$KC" config credentials --server http://localhost:8080 --realm master \
@@ -87,14 +99,16 @@ echo "created cit-web client: $CID"
 #    `kcadm get serverinfo`); salt config key is `pairwiseSubAlgorithmSalt`. The
 #    older `oidc-sub-mapper` is the *non*-pairwise sub mapper and leaves sub = the
 #    raw user id — do not use it here.
-"$KC" create "clients/$CID/protocol-mappers/models" -r "$REALM" \
-  -s name=pairwise-subject \
+CIT_PW_ARGS=( -s name=pairwise-subject \
   -s protocol=openid-connect \
   -s protocolMapper=oidc-sha256-pairwise-sub-mapper \
   -s "config.\"pairwiseSubAlgorithmSalt\"=$CIT_PAIRWISE_SALT" \
   -s 'config."id.token.claim"=true' \
-  -s 'config."access.token.claim"=true' \
-  || echo "pairwise mapper may already exist"
+  -s 'config."access.token.claim"=true' )
+# Multi-host redirect (web + native) => Keycloak requires a Sector Identifier URI here.
+[[ -n "$CIT_SECTOR_URI" ]] && CIT_PW_ARGS+=( -s "config.\"sectorIdentifierUri\"=$CIT_SECTOR_URI" )
+"$KC" create "clients/$CID/protocol-mappers/models" -r "$REALM" "${CIT_PW_ARGS[@]}" \
+  || echo "NOTE: cit-web pairwise mapper create returned non-zero (exists on re-run, or CIT_SECTOR_URI unreachable — the guard below decides if that's fatal)"
 
 # 5. Audience: ensure aud includes cit-web so CIT's verifier can enforce it.
 "$KC" create "clients/$CID/protocol-mappers/models" -r "$REALM" \
@@ -158,13 +172,35 @@ fi
   -s 'config."access.token.claim"=true' \
   || echo "audience mapper may already exist"
 
+# -----------------------------------------------------------------------------
+# GUARD (ADR-003). Every client MUST carry a pairwise-sub mapper, or its `sub` is the
+# raw, correlatable user id — a platform-invariant breach. cit-web loses the mapper
+# silently when CIT_SECTOR_URI is unset/unreachable (multi-host redirect). This turns
+# that silent failure into a hard stop for anything real, and a loud warning in dev.
+# -----------------------------------------------------------------------------
+for c in cit-web kindredaccess-web; do
+  ccid=$("$KC" get clients -r "$REALM" -q clientId="$c" --fields id --format csv --noquotes)
+  if "$KC" get "clients/$ccid/protocol-mappers/models" -r "$REALM" --fields protocolMapper 2>/dev/null \
+       | grep -q oidc-sha256-pairwise-sub-mapper; then
+    echo "OK: $c has a pairwise-sub mapper (ADR-003)"
+  elif [[ "$c" == "cit-web" && -z "$CIT_SECTOR_URI" ]]; then
+    echo "WARNING: cit-web has NO pairwise-sub mapper — CIT_SECTOR_URI is unset, so its sub is" >&2
+    echo "         NON-pairwise (correlatable). Acceptable for a THROWAWAY dev run only. Before" >&2
+    echo "         prod, host a sector-identifier doc and set CIT_SECTOR_URI (see deploy runbook)." >&2
+  else
+    echo "FATAL: $c is MISSING its pairwise-sub mapper — ADR-003 breach." >&2
+    [[ "$c" == "cit-web" ]] && echo "       CIT_SECTOR_URI is set but the mapper didn't land: the sector doc is unreachable or malformed." >&2
+    exit 1
+  fi
+done
+
 cat <<EOF
 
 Done (reference run). Next:
   - Enable 2FA/step-up + apply the accessible login theme (hardening §5, §6).
   - Add a test user with a verified email.
-  - Export the realm and commit it as the authoritative config:
-      $KC get realms/$REALM -r $REALM > /opt/keycloak/data/import/realm/bas-realm.json
+  - Export the realm and commit it as the authoritative config (mount ./realm rw first):
+      $KC get realms/$REALM -r $REALM > /opt/keycloak/data/import/bas-realm.json
   - Set CIT backend env: KEYCLOAK_ISSUER=<issuer>/realms/$REALM, KEYCLOAK_CLIENT_ID=cit-web
   - Set CIT native app env (bas-apps/apps/cit/.env):
       EXPO_PUBLIC_KEYCLOAK_ISSUER=<issuer>/realms/$REALM

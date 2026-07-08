@@ -23,21 +23,34 @@ Prereq: a hardened Keycloak reachable (see [`../../docs/deploy/keycloak-digitalo
 # 1. Generate secrets ONCE. Idempotent: refuses to overwrite (salts must stay stable).
 ./gen-secrets.sh                      # writes secrets.env (chmod 600, gitignored)
 
-# 2. Copy secrets.env to the Keycloak host, then load it + prod parameters:
+# 2. Host cit-web's SECTOR IDENTIFIER document (required — validated 2026-07-08 against
+#    KC 26). cit-web serves web + native, so its redirect URIs span multiple hosts, and
+#    Keycloak's pairwise-sub mapper then REQUIRES a reachable HTTPS doc listing them as a
+#    JSON array. Keycloak fetches + validates it at mapper-create time; without it the
+#    pairwise mapper is rejected and cit-web silently gets a NON-pairwise (correlatable)
+#    sub — an ADR-003 breach. Publish this JSON at a stable URL you control, e.g.
+#    https://id.<domain>/oidc/cit-web-sector.json :
+#      ["https://<cit-host>/api/auth/session*","com.beauaccesssolutions.cit://oauth*"]
+#    (the exact strings must match CIT_REDIRECT_WEB + the native redirect below.)
+
+# 3. Copy secrets.env to the Keycloak host, then load it + prod parameters:
 set -a
 . secrets.env                         # CIT_PAIRWISE_SALT, KA_PAIRWISE_SALT, KA_CLIENT_SECRET
 KC_ADMIN=<admin> KC_ADMIN_PASSWORD=<pw>
 CIT_REDIRECT_WEB='https://<cit-host>/api/auth/session*'
+CIT_SECTOR_URI='https://id.<domain>/oidc/cit-web-sector.json'   # from step 2 — REQUIRED
 KA_REDIRECT_WEB='https://kindredaccess.org/oidc/callback/*'
 KA_POST_LOGOUT='https://kindredaccess.org/*'
 set +a
 
-# 3. Run the shared bootstrap against prod (creates realm bas, both clients, pairwise +
+# 4. Run the shared bootstrap against prod (creates realm bas, both clients, pairwise +
 #    audience mappers, optional first/last name profile). It sets the KA client secret
-#    from KA_CLIENT_SECRET rather than auto-generating one.
+#    from KA_CLIENT_SECRET rather than auto-generating one. The script's end-of-run GUARD
+#    aborts if either client is missing its pairwise-sub mapper — so a bad/unreachable
+#    CIT_SECTOR_URI fails loudly here instead of shipping a correlatable sub.
 bash ../dev/realm/bootstrap.sh
 
-# 4. Finish hardening the realm — token TTLs / RS256 / rotation, 2FA + step-up, the
+# 5. Finish hardening the realm — token TTLs / RS256 / rotation, 2FA + step-up, the
 #    WCAG login theme, backups — per ../../docs/keycloak-setup-and-hardening.md §4–§8.
 ```
 

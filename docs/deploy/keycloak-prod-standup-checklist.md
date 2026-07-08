@@ -17,7 +17,7 @@ run it:
 | DO deploy runbook (Droplet + Caddy + managed PG) | ✅ written |
 | Realm-as-code — parameterized bootstrap + `gen-secrets.sh` | ✅ on `feat/prod-realm-as-code` |
 | Hardening checklist | ✅ drafted (§1–§9), ⬜ not executed |
-| Local dev validation of the bootstrap (KC 26) | ⬜ **not yet run** — do this first (see step 0) |
+| Local dev validation of the bootstrap (KC 26) | ✅ **run 2026-07-08** — caught + fixed a silent `cit-web` pairwise-sub bug (see step 0) |
 | DO account / `doctl` auth | ⬜ **human** |
 | Domain + `id.` DNS control | ⬜ **human** |
 | Someone to run it + hold the admin credential | ⬜ **human** |
@@ -36,11 +36,20 @@ Phase-2 item "test against local dev Keycloak"):
 ```sh
 docker compose -f identity/dev/docker-compose.yml up -d
 docker compose -f identity/dev/docker-compose.yml exec keycloak \
-  bash /opt/keycloak/data/import/realm/bootstrap.sh   # dev placeholders
+  bash /opt/keycloak/data/import/bootstrap.sh   # dev placeholders (no CIT_SECTOR_URI)
 ```
 Confirm the `bas` realm, `cit-web` + `kindredaccess-web` clients, pairwise `sub`, and
-audience mappers come out right on KC 26. Fix any version-specific `kcadm` drift **here**,
-not in prod.
+audience mappers come out right on KC 26.
+
+> **Done 2026-07-08 — and it caught a real bug.** `cit-web`'s pairwise-sub mapper was
+> failing silently (masked by `|| echo "may already exist"`): its web + native redirect
+> URIs span multiple hosts, so Keycloak rejects the pairwise mapper unless a **Sector
+> Identifier URI** is configured — leaving `cit-web` with a **non-pairwise, correlatable
+> `sub`** (ADR-003 breach). Fixed in `bootstrap.sh`: `CIT_SECTOR_URI` support + an
+> end-of-run **guard** that aborts (prod) or warns (dev) if any client lacks its pairwise
+> mapper. Net new prod step: **host the sector-identifier document** (step 3). In dev the
+> guard now warns and continues; a full pairwise `cit-web` in dev needs `CIT_SECTOR_URI`
+> pointed at a reachable doc.
 
 **1. Provision** ([runbook steps 1–3](keycloak-digitalocean.md)):
 - [ ] Managed Postgres dedicated to Keycloak (not CIT's DB); note host/port `25060`/db/user/pw/CA.
@@ -54,7 +63,11 @@ not in prod.
 
 **3. Realm-as-code** ([prod README](../../identity/prod/README.md)):
 - [ ] `identity/prod/gen-secrets.sh` → `secrets.env` (**once** — salts are permanent, ADR-003). Copy to host, chmod 600.
-- [ ] `set -a; . secrets.env; set +a` + prod redirect URIs, then run `identity/dev/realm/bootstrap.sh` against prod.
+- [ ] **Host cit-web's sector-identifier document** at `https://id.<domain>/oidc/cit-web-sector.json`
+  (JSON array of cit-web's web + native redirect URIs); export `CIT_SECTOR_URI` to it.
+  **Required** — cit-web's multi-host redirects make Keycloak reject its pairwise-sub mapper
+  without it, silently yielding a correlatable `sub` (ADR-003 breach). Verified against KC 26, 2026-07-08.
+- [ ] `set -a; . secrets.env; set +a` + prod redirect URIs + `CIT_SECTOR_URI`, then run `identity/dev/realm/bootstrap.sh` against prod. Its end-of-run guard aborts if either client lacks its pairwise mapper.
 
 **4. Harden the realm** ([hardening §2–§8](../keycloak-setup-and-hardening.md)):
 - [ ] Replace/lock the bootstrap admin; restrict the admin path (SSH tunnel / allowlist).
