@@ -45,12 +45,18 @@ echo "created cit-web client: $CID"
 
 # 4. Pairwise `sub` (ADR-003): the same user gets a different, stable sub per app,
 #    so CIT's sub never correlates with KindredAccess / Benefits Navigator.
+#    Provider id is `oidc-sha256-pairwise-sub-mapper` (verified on KC 26 via
+#    `kcadm get serverinfo`); salt config key is `pairwiseSubAlgorithmSalt`. The
+#    older `oidc-sub-mapper` is the *non*-pairwise sub mapper and leaves sub = the
+#    raw user id — do not use it here.
 "$KC" create "clients/$CID/protocol-mappers/models" -r "$REALM" \
-  -s name=pairwise-sub \
+  -s name=pairwise-subject \
   -s protocol=openid-connect \
-  -s protocolMapper=oidc-sub-mapper \
-  -s 'config."pairwise.sub.algorithm.salt"=' \
-  || echo "NOTE: verify the pairwise sub mapper name for your KC version (oidc-sub-mapper / oidc-pairwise-subject-mapper)"
+  -s protocolMapper=oidc-sha256-pairwise-sub-mapper \
+  -s 'config."pairwiseSubAlgorithmSalt"=cit-sector-salt-dev' \
+  -s 'config."id.token.claim"=true' \
+  -s 'config."access.token.claim"=true' \
+  || echo "pairwise mapper may already exist"
 
 # 5. Audience: ensure aud includes cit-web so CIT's verifier can enforce it.
 "$KC" create "clients/$CID/protocol-mappers/models" -r "$REALM" \
@@ -58,6 +64,52 @@ echo "created cit-web client: $CID"
   -s protocol=openid-connect \
   -s protocolMapper=oidc-audience-mapper \
   -s 'config."included.client.audience"=cit-web' \
+  -s 'config."access.token.claim"=true' \
+  || echo "audience mapper may already exist"
+
+# =============================================================================
+# kindredaccess-web client (BAS app #2, Django).
+# Unlike cit-web (public: browser/native front-end), KindredAccess's Django backend
+# is a CONFIDENTIAL client — it can hold a secret — so we use confidential + PKCE
+# (strictly stronger). Same pairwise `sub` + audience isolation as cit-web.
+# Redirect URI is mozilla-django-oidc's callback: <origin>/oidc/callback/.
+# =============================================================================
+KA_REDIRECT_WEB="${KA_REDIRECT_WEB:-http://localhost:8000/oidc/callback/*}"
+KA_POST_LOGOUT="${KA_POST_LOGOUT:-http://localhost:8000/*}"
+
+KA_CID=$("$KC" create clients -r "$REALM" \
+  -s clientId=kindredaccess-web \
+  -s publicClient=false \
+  -s standardFlowEnabled=true \
+  -s implicitFlowEnabled=false \
+  -s directAccessGrantsEnabled=false \
+  -s 'attributes."pkce.code.challenge.method"=S256' \
+  -s "redirectUris=[\"$KA_REDIRECT_WEB\"]" \
+  -s "attributes.\"post.logout.redirect.uris\"=$KA_POST_LOGOUT" \
+  -i)
+echo "created kindredaccess-web client: $KA_CID"
+
+# Reveal the generated client secret (KindredAccess needs it as OIDC_RP_CLIENT_SECRET).
+"$KC" get "clients/$KA_CID/client-secret" -r "$REALM" \
+  && echo "^ set this as KindredAccess OIDC_RP_CLIENT_SECRET"
+
+# Pairwise `sub` (ADR-003) — KA's sub never correlates with cit-web's.
+# (see the cit-web mapper above for the provider-id / salt rationale)
+"$KC" create "clients/$KA_CID/protocol-mappers/models" -r "$REALM" \
+  -s name=pairwise-subject \
+  -s protocol=openid-connect \
+  -s protocolMapper=oidc-sha256-pairwise-sub-mapper \
+  -s 'config."pairwiseSubAlgorithmSalt"=ka-sector-salt-dev' \
+  -s 'config."id.token.claim"=true' \
+  -s 'config."access.token.claim"=true' \
+  || echo "pairwise mapper may already exist"
+
+# Audience: ensure aud/azp includes kindredaccess-web so KA can reject foreign tokens.
+"$KC" create "clients/$KA_CID/protocol-mappers/models" -r "$REALM" \
+  -s name=kindredaccess-web-audience \
+  -s protocol=openid-connect \
+  -s protocolMapper=oidc-audience-mapper \
+  -s 'config."included.client.audience"=kindredaccess-web' \
   -s 'config."access.token.claim"=true' \
   || echo "audience mapper may already exist"
 
