@@ -32,6 +32,18 @@ Format per entry: **Lesson** — what broke → the fix. `(source-app, YYYY-MM-D
   fires may never speak. This is the §4 spine contract; every BAS app's dynamic-status surface has
   the same trap. (page-repair, 2026-07-13)
 
+- **Delegating status to one live-region utility means the visible status nodes must go
+  AT-silent — otherwise every change announces twice.** KindredAccess added a single
+  `ChatStatusAnnouncer` (two regions) but the visible typing/connection/presence nodes kept the
+  `role="status"` / `aria-live` they had before; since `role="status"` *is itself* a polite live
+  region, each change was read twice — once by the visible node, once by the utility. The design
+  review caught the spec reproducing the very double-read it set out to kill. → When a status
+  type is routed through the shared aria-live utility, strip `role="status"`/`aria-live` from the
+  visible element (make it `aria-hidden="true"` or plain text) so exactly one path speaks. Same
+  trap as a `role="log"` transcript that already voices incoming messages — don't also announce
+  those through the utility. This is the §4 spine's implementation contract; every BAS
+  dynamic-status surface (KindredAccess, Benefits Navigator, page-repair) has it. (kindredaccess, 2026-07-13)
+
 - **A UI with no `color-scheme` declaration has only been verified in the theme you happened to
   view — dark mode is untested by default, and the browser may auto-darken it unpredictably.**
   page-repair's options page set no colors and no `<meta name="color-scheme">`, so its contrast held
