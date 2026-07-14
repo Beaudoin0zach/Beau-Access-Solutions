@@ -29,15 +29,23 @@ hub isn't at `~/projects/bas-platform`, stop and say so rather than guessing.
 ## 2. Reconcile against TRACKER.md
 
 Read `~/projects/bas-platform/TRACKER.md` (sections 1 "Portfolio & platform
-onboarding" and 2 "Deployment & hosting" especially) and compare its claims to
-the script's real state. Flag every mismatch, e.g.:
+onboarding", 2 "Deployment & hosting", and **2b "iOS / TestFlight"**) and compare
+its claims to the script's real state. Flag every mismatch, e.g.:
 
 - **Remote slug** differs (TRACKER's repo column vs the real remotes; note that
   some apps have >1 remote — an `origin` plus an old/canonical one).
 - **PR status** — TRACKER says "PR not opened" but the script found an open PR,
   or says a branch is unmerged when it has landed on main (branch shows
   `0 ahead / N behind`).
-- **Deploy status** — TRACKER's ✅/⬜ vs the actual HTTP health code.
+- **Deploy status** — TRACKER's ✅/⬜ vs the actual HTTP health code (the script
+  now probes CIT, Access Atlas, KindredAccess, Benefits Navigator, page-repair,
+  and a Keycloak-prod infra line).
+- **Mobile / TestFlight (§2b)** — the iOS apps aren't in `repos/`, so check them
+  by hand against `~/projects/bas-platform/docs/mobile-and-testflight.md`:
+  the two webview wrappers (Access Atlas, KindredAccess) reflect edits via **web
+  deploy**, while **Baseline (CIT)** is a native Expo app needing `eas update` /
+  `eas build`. Watch for mobile source repos (`bas-apps`, `kindredaccess-ios`,
+  `bas-frontend`) that have **no git remote** — surface any that are unbacked.
 - **Branch/onboarding** state that has clearly moved on since TRACKER's
   `Last updated` date.
 
