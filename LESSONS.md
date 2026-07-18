@@ -25,14 +25,17 @@ Format per entry: **Lesson** — what broke → the fix. `(source-app, YYYY-MM-D
 The **normative contracts and their gates are C1–C4** in
 [`docs/design-principles.md` §4.1](docs/design-principles.md) — read those for what to *do*. Kept
 here is what that table can't hold: how each one actually broke, and where it is still unenforced.
+Gates audited 2026-07-18 by reading the tests; **partials marked**. CIT was not checked out locally.
 
 - **C1 — live-region spine.** page-repair routed labeling errors, extension errors and clipboard
   failures through the same polite `role="status"` region as the success summary, so a failure
   queued behind the user's current utterance or was missed entirely if they'd navigated on (SC
   4.1.3). *Enforced:* page-repair `test/unit.mjs` "live-region spine" drives the real content script
   and asserts both regions exist **before** any message, failures land assertive, partial progress
-  stays polite — gated by CI (`.github/workflows/ci.yml`). *Unenforced:* every other BAS surface.
-  (page-repair, 2026-07-13)
+  stays polite — gated by CI. BN enforces it more completely still (pre-creation in
+  `tests/test_assistant_template.py` + routing in `tests/js/assistant.a11y.test.mjs`); KindredAccess
+  only the markup half — no routing test, so the bug C1 exists to catch is untested there.
+  *Unenforced:* Access Atlas, Disability Wiki, native CIT. (page-repair, 2026-07-13)
 
 - **C2 — streaming announce + focus.** BN's assistant re-announced its response region on every
   streamed token (machine-gunning the screen reader), and the assertive *error* announce left
@@ -47,14 +50,20 @@ here is what that table can't hold: how each one actually broke, and where it is
   `role="status"`/`aria-live` on the visible typing/connection/presence nodes, so every change was
   read twice — the design review caught the spec reproducing the very double-read it set out to
   kill. Same trap for a `role="log"` transcript that already voices incoming messages.
-  *Unenforced everywhere* — KindredAccess, BN and page-repair all carry it. (kindredaccess, 2026-07-13)
+  *Enforced:* KindredAccess `test_visible_status_nodes_are_at_silent`, shipped with the fix in
+  `1b3506c` — but a regex over three named node ids, blind to a fourth indicator, nested regions, or
+  `role="log"`. page-repair's is structural, but guards a surface whose announcer only writes into
+  hidden regions — regression gate, not a fix. *Unenforced:* BN, CIT.
+  (kindredaccess, 2026-07-13; page-repair gate, 2026-07-18)
 
 - **C4 — color-scheme + contrast.** page-repair's options page declared no colors and no
   `color-scheme`, so contrast held in light but was unverified in dark; a `kbd` border at `#999` was
   already sub-3:1 even in light. *Enforced:* page-repair `test/contrast.mjs` recomputes every pair
   from the token hexes in both themes, **fail-closed** — a `:root` token in no verified pair fails
-  the run (re-introducing `#999` reproduces 2.85:1 and fails). *Unenforced:* `packages/ui`, the
-  Keycloak theme. (page-repair, 2026-07-13)
+  the run (re-introducing `#999` reproduces 2.85:1 and fails). *Partial:* KindredAccess does real
+  luminance math but two hardcoded 3:1 spot-checks only — no 4.5:1 pair, no `color-scheme` assert.
+  *Unenforced:* `packages/ui`, Keycloak theme, BN (declares `color-scheme`, asserts nothing).
+  (page-repair, 2026-07-13)
 
 ## Identity, OIDC & mobile wrappers
 
