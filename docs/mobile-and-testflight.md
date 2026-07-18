@@ -5,13 +5,15 @@ an edit reaches testers. Written 2026-07-14 after a status pass found the tracke
 badly out of date on this (it treated TestFlight as unstarted; all three apps are
 live on it). See [TRACKER.md §2b](../TRACKER.md).
 
-## The three TestFlight apps
+## The TestFlight apps (3 live + 2 scaffolded)
 
-| TestFlight name | App | Build type | Source repo |
-|---|---|---|---|
-| **Access Atlas** | Access Atlas | Capacitor / WKWebView **wrapper** | `access-directory` (`capacitor.config.ts`) |
-| **KindredAccess** | KindredAccess | Capacitor / WKWebView **wrapper** | `kindredaccess-ios` ⚠️ *no remote* |
-| **Baseline** | Chronic Illness Tracker (CIT) | **native Expo / React Native** (EAS) | `bas-apps/apps/cit` ⚠️ *no remote* |
+| TestFlight name | App | Build type | Source repo | Status |
+|---|---|---|---|---|
+| **Access Atlas** | Access Atlas | Capacitor / WKWebView **wrapper** | `access-directory` (`capacitor.config.ts`) | 🟢 live on TestFlight |
+| **KindredAccess** | KindredAccess | Capacitor / WKWebView **wrapper** | `kindredaccess-ios` ⚠️ *no remote* | 🟢 live on TestFlight |
+| **Baseline** | Chronic Illness Tracker (CIT) | **native Expo / React Native** (EAS) | `bas-apps/apps/cit` ⚠️ *no remote* | 🟢 live on TestFlight |
+| *(none yet)* | Benefits Navigator | Capacitor 8 / WKWebView **wrapper** | `benefits-navigator` `mobile/` (branch `feat/ios-wrapper`) | 🟡 scaffolded 2026-07-18 — compiles; needs ASC record + signing |
+| *(none yet)* | Disability Wiki | Capacitor 6 **bundled-static** (offline-first, NOT a URL wrapper) | `disability-wiki` `app/` (branch `feat/capacitor-ios`) | 🟡 scaffolded 2026-07-18 — compiles; needs ASC record + signing |
 
 > **CIT ships as "Baseline" on TestFlight.** If you're looking for CIT in App Store
 > Connect / TestFlight, it's under that name.
@@ -26,6 +28,12 @@ the live site.
 
 - **Access Atlas** loads `https://access-atlas-qd464.ondigitalocean.app`
 - **KindredAccess** loads `https://kindredaccess.org`
+- **Benefits Navigator** (scaffolded) loads `https://benefits-navigator-staging-3o4rq.ondigitalocean.app`
+  — **staging, deliberately**: verified 2026-07-18 that no BN prod app or custom
+  domain exists, and while BN is Candidate under ADR-005 internal testers should
+  hit staging. Its `allowNavigation` already targets `id.beauaccesssolutions.com`
+  (staging's live issuer), so it starts on the config the other three are
+  rebuilding toward.
 
 **Consequence:** a code/content edit ships by **redeploying the web app**, NOT by
 rebuilding for TestFlight. A tester sees it on next launch (force-quit to clear
@@ -79,11 +87,19 @@ so it's a no-op there until that screen is ported.)
   with its EAS/App.js buildout committed). The real Access Atlas TestFlight build
   is the Capacitor wrapper in `access-directory`, not this — decide whether to
   fold in its work or retire the repo.
-- **Disability Wiki — native spike, NOT on TestFlight yet.** `disability-wiki`
-  (Astro Starlight member app, remote `Beaudoin0zach/disability-wiki`) has an
-  early Capacitor spike (`app/capacitor.config.json`, branch `spike/capacitor-native`).
-  When it ships it'll be a fourth webview wrapper; today it's not a TestFlight
-  build. Tracked in its §1 onboarding row.
+- **Disability Wiki — iOS platform added (2026-07-18), NOT on TestFlight yet.**
+  Branch `feat/capacitor-ios` (supersedes the `spike/capacitor-native` scaffold,
+  cherry-picked onto current `main`): `app/ios/` committed, unsigned simulator
+  build passes. **Deliberately NOT a URL wrapper** — it bundles `site/dist`
+  (~102 MB) into the binary for a genuinely offline wiki (crisis pages must load
+  offline) and a stronger Guideline 4.2 story. Consequence: content updates need
+  a new build, the opposite tradeoff from the other wrappers. Known gap: the
+  bundled `/contribute` form posts to a relative `/api/contributions` that has no
+  backend inside the bundle (see `app/README.md` open question #5).
+- **This machine's build quirks (2026-07-18):** CocoaPods dies without
+  `LANG=en_US.UTF-8`; `xcodebuild` needs
+  `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer` (xcode-select points
+  at the bare CLT). Capacitor 8 projects (BN) use SPM — no CocoaPods at all.
 
 ## Live endpoints (verified 2026-07-14, HTTP 200)
 
