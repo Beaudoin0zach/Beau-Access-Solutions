@@ -44,8 +44,13 @@ health_url() {
 # Infra endpoints that aren't app repos under repos/ but are worth a health line.
 # Probed once at the end of the run (see the INFRA loop).
 infra_endpoints() {
+  # IdP migration in progress: the platform IdP is moving to the neutral BAS domain
+  # id.beauaccesssolutions.com. During the transition Keycloak (KC_HOSTNAME_STRICT=false)
+  # serves BOTH hosts, each self-reporting its own issuer. Probe both until every app is
+  # flipped and the old host is retired (301'd) — then drop the id.kindredaccess.org line.
   cat <<'EOF'
-keycloak-prod https://id.kindredaccess.org/realms/bas
+keycloak-prod https://id.beauaccesssolutions.com/realms/bas
+keycloak-prod-legacy https://id.kindredaccess.org/realms/bas
 EOF
 }
 

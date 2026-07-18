@@ -27,9 +27,16 @@ cat > "$OUT" <<EOF
 # Pairwise-sub salts (ADR-003) — STABLE FOREVER, never rotate on a live realm.
 CIT_PAIRWISE_SALT=$(rand)
 KA_PAIRWISE_SALT=$(rand)
+AA_PAIRWISE_SALT=$(rand)
+DW_PAIRWISE_SALT=$(rand)
+BN_PAIRWISE_SALT=$(rand)
 #
 # KindredAccess confidential-client secret (OIDC_RP_CLIENT_SECRET on the KA side).
 KA_CLIENT_SECRET=$(rand)
+#
+# Benefits Navigator confidential-client secret — used ONLY once BN's OIDC RP is wired
+# and BN_REDIRECT_WEB is set (the bootstrap skips the benefits-navigator-web client until then).
+BN_CLIENT_SECRET=$(rand)
 EOF
 
 chmod 600 "$OUT"
