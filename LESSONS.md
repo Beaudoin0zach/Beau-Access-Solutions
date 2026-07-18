@@ -8,7 +8,9 @@ safety conventions. `@import`ed only by BAS app repos' `CLAUDE.md` (alongside th
 
 **Scope rule:** a lesson belongs here only if *another BAS app would make the same mistake* and
 a non-BAS project would not. Truly universal lessons go in `~/.claude/shared/LESSONS.md`;
-single-app facts go in that app's own `CLAUDE.md` or memory. Prune if this grows past ~1 screen.
+single-app facts go in that app's own `CLAUDE.md` or memory. Prune if this grows past ~1 page
+(**~85 lines**) — it is a narrower file than the machine-wide one (budget ~200), so it earns a
+tighter ceiling.
 
 **Governing doc:** [`docs/design-principles.md`](docs/design-principles.md) — the UX/a11y standard
 these lessons defend. When a lesson hardens into a reusable primitive, graduate it into
@@ -20,63 +22,39 @@ Format per entry: **Lesson** — what broke → the fix. `(source-app, YYYY-MM-D
 
 ## Accessibility spine & shared UI
 
-- **One live region for all status announces failures as politely as successes — failures need
-  their own assertive channel, warmed at injection.** page-repair routed labeling errors,
-  extension errors, and clipboard failures through the same `aria-live="polite"` / `role="status"`
-  region as the success summary; a polite failure queues behind the user's current utterance or is
-  missed entirely if they've navigated on — exactly the SC 4.1.3 (Status Messages) case that must be
-  assertive. → Keep a second `role="alert"` / `aria-live="assertive"` region and route only genuine
-  failures to it (partial-progress like "labeled 40 of 60, run again" stays polite); **pre-create
-  both regions before the first message** — a live region that enters the DOM in the same breath as
-  its content mutates gets dropped by screen readers, so an alert region created only when the error
-  fires may never speak. This is the §4 spine contract; every BAS app's dynamic-status surface has
-  the same trap. *Gate graduated (page-repair only):* `test/unit.mjs` "live-region spine" section
-  drives the real content script and asserts both regions exist **before** any message, that failures
-  land assertive, and that partial progress stays polite — now gated by new CI (`.github/workflows/ci.yml`).
-  The rule still applies unenforced to every other BAS surface. (page-repair, 2026-07-13)
+The **normative contracts and their gates are C1–C4** in
+[`docs/design-principles.md` §4.1](docs/design-principles.md) — read those for what to *do*. Kept
+here is what that table can't hold: how each one actually broke, and where it is still unenforced.
 
-- **On a streaming / incrementally-updated region, announce once on completion — never per update —
-  and remember an announcement is not focus management.** The Benefits Navigator assistant streams
-  tokens into a response region; re-announcing that region on every token machine-guns a screen
-  reader into uselessness, and firing an assertive *error* announce still leaves keyboard/AT focus
-  stranded on the now-removed "Stop generating" button. → Keep the streaming region `aria-busy` and
-  the live region silent while it fills, announce "Response complete" **once** on done (reserve the
-  assertive channel for errors), and on *every* state transition move focus somewhere sensible — the
-  finished answer on done, the recovery control on failure. Extends the §4 spine contract from
-  static status to dynamic/streaming surfaces (any BAS AI or chat UI: KindredAccess, Benefits
-  Navigator). *Gate graduated (BN only):* the inline template script became `static/js/assistant.js`
-  so it could be tested — `tests/js/assistant.a11y.test.mjs` pumps 200 deltas and asserts via
-  MutationObserver that the polite region never changes, plus focus lands on the answer (done) and on
-  the recovery control (error). Wired into CI as `npm run test:js`; note `tests/e2e` is excluded from
-  BN's pytest run, so a Playwright test there would have gated nothing. KindredAccess's chat surface
-  remains unenforced. (benefits-navigator, 2026-07-13)
-
-- **Delegating status to one live-region utility means the visible status nodes must go
-  AT-silent — otherwise every change announces twice.** KindredAccess added a single
-  `ChatStatusAnnouncer` (two regions) but the visible typing/connection/presence nodes kept the
-  `role="status"` / `aria-live` they had before; since `role="status"` *is itself* a polite live
-  region, each change was read twice — once by the visible node, once by the utility. The design
-  review caught the spec reproducing the very double-read it set out to kill. → When a status
-  type is routed through the shared aria-live utility, strip `role="status"`/`aria-live` from the
-  visible element (make it `aria-hidden="true"` or plain text) so exactly one path speaks. Same
-  trap as a `role="log"` transcript that already voices incoming messages — don't also announce
-  those through the utility. This is the §4 spine's implementation contract; every BAS
-  dynamic-status surface (KindredAccess, Benefits Navigator, page-repair) has it. (kindredaccess, 2026-07-13)
-
-- **A UI with no `color-scheme` declaration has only been verified in the theme you happened to
-  view — dark mode is untested by default, and the browser may auto-darken it unpredictably.**
-  page-repair's options page set no colors and no `<meta name="color-scheme">`, so its contrast held
-  in light but was unverified in dark; a `kbd` border at `#999` was already sub-3:1 (SC 1.4.11) even
-  in light. design-principles.md §4 requires contrast verified in **both** themes. → Declare
-  `color-scheme: light dark` (meta + `:root`), drive colors from tokens with a
-  `@media (prefers-color-scheme: dark)` override, and verify every text (≥4.5:1) and UI-boundary
-  (≥3:1) pair **numerically in both themes** with a luminance script — not by eyeballing one theme.
-  Applies to any BAS surface with authored CSS (options pages, `packages/ui` components, the
-  Keycloak theme). *Gate graduated (page-repair only):* `test/contrast.mjs` recomputes every pair from
-  the token hexes in both themes and is **fail-closed** — a `:root` token in no verified pair fails the
-  run, so a new colour can't slip in unchecked. (Re-introducing the `#999` border reproduces 2.85:1 and
-  fails.) `packages/ui` and the Keycloak theme still have no such script.
+- **C1 — live-region spine.** page-repair routed labeling errors, extension errors and clipboard
+  failures through the same polite `role="status"` region as the success summary, so a failure
+  queued behind the user's current utterance or was missed entirely if they'd navigated on (SC
+  4.1.3). *Enforced:* page-repair `test/unit.mjs` "live-region spine" drives the real content script
+  and asserts both regions exist **before** any message, failures land assertive, partial progress
+  stays polite — gated by CI (`.github/workflows/ci.yml`). *Unenforced:* every other BAS surface.
   (page-repair, 2026-07-13)
+
+- **C2 — streaming announce + focus.** BN's assistant re-announced its response region on every
+  streamed token (machine-gunning the screen reader), and the assertive *error* announce left
+  keyboard/AT focus stranded on the now-removed "Stop generating" button. *Enforced:* the inline
+  template script was extracted to `static/js/assistant.js` so it could be tested —
+  `tests/js/assistant.a11y.test.mjs` pumps 200 deltas, asserts via MutationObserver that the polite
+  region never changes, and checks focus lands on the answer (done) / recovery control (error); CI as
+  `npm run test:js`. ⚠️ `tests/e2e` is **excluded** from BN's pytest run, so a Playwright test there
+  would have gated nothing. *Unenforced:* KindredAccess's chat surface. (benefits-navigator, 2026-07-13)
+
+- **C3 — double-read.** KindredAccess added a single `ChatStatusAnnouncer` but left
+  `role="status"`/`aria-live` on the visible typing/connection/presence nodes, so every change was
+  read twice — the design review caught the spec reproducing the very double-read it set out to
+  kill. Same trap for a `role="log"` transcript that already voices incoming messages.
+  *Unenforced everywhere* — KindredAccess, BN and page-repair all carry it. (kindredaccess, 2026-07-13)
+
+- **C4 — color-scheme + contrast.** page-repair's options page declared no colors and no
+  `color-scheme`, so contrast held in light but was unverified in dark; a `kbd` border at `#999` was
+  already sub-3:1 even in light. *Enforced:* page-repair `test/contrast.mjs` recomputes every pair
+  from the token hexes in both themes, **fail-closed** — a `:root` token in no verified pair fails
+  the run (re-introducing `#999` reproduces 2.85:1 and fails). *Unenforced:* `packages/ui`, the
+  Keycloak theme. (page-repair, 2026-07-13)
 
 ## Identity, OIDC & mobile wrappers
 
