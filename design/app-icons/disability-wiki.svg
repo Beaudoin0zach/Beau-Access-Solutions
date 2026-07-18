@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Disability Wiki — DW letterforms filled with the muted Disability Pride flag,
+       heavy standout type on charcoal. The letters ARE the flag. -->
+  <rect width="1024" height="1024" fill="#1F2125"/>
+  <defs>
+    <clipPath id="dw">
+      <text x="512" y="676" font-family="Avenir Next, Futura, Helvetica Neue, sans-serif"
+            font-weight="800" font-size="470" letter-spacing="-14" text-anchor="middle">DW</text>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#dw)">
+    <g transform="rotate(45 512 512)">
+      <rect x="292" y="-600" width="88" height="2200" fill="#CF7280"/>
+      <rect x="380" y="-600" width="88" height="2200" fill="#EEDE77"/>
+      <rect x="468" y="-600" width="88" height="2200" fill="#E9E9E9"/>
+      <rect x="556" y="-600" width="88" height="2200" fill="#7AC1E0"/>
+      <rect x="644" y="-600" width="88" height="2200" fill="#3BB07D"/>
+      <rect x="-600" y="-600" width="892" height="2200" fill="#CF7280"/>
+      <rect x="732" y="-600" width="892" height="2200" fill="#3BB07D"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- Access Atlas — the app's OWN favicon mark (access-directory public/favicon.svg),
+       scaled faithfully: teal field, faint ring, 8-point compass star. -->
+  <rect width="1024" height="1024" fill="#0d5257"/>
+  <circle cx="512" cy="512" r="368" fill="none" stroke="#ffffff" stroke-opacity="0.45" stroke-width="48"/>
+  <path d="M512 128 L601.6 422.4 L896 512 L601.6 601.6 L512 896 L422.4 601.6 L128 512 L422.4 422.4 Z" fill="#ffffff"/>
+</svg>

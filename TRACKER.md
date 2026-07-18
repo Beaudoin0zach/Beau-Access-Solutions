@@ -3,7 +3,7 @@
 Living status board for the Beau Access Solutions accessibility-app platform. Update as
 things move — this is the single place to see where everything stands.
 
-**Last updated:** 2026-07-18 (CIT numeric-PHI fix open as #41 + mechanism correction; `platform-status.sh` PR-count fails open on a `gh` account flip)
+**Last updated:** 2026-07-18 (TestFlight distribution unblocked via ASC API — beta groups + compliance sweep; DW router fix 1.0(2); BN prod-origin 1.0(2); icon family v4 in design/)
 **Legend:** ✅ done · 🟡 in progress · ⬜ not started · ⏳ blocked / waiting on input
 
 ---
@@ -86,6 +86,12 @@ what gets shipped; "Trigger" = how a deploy happens.
 ## 2b. iOS / TestFlight
 
 **All FIVE apps are on TestFlight as of 2026-07-18** — the 2026-07-18 upload round shipped issuer-migration rebuilds of the original three (all now authenticate natively against `id.beauaccesssolutions.com`, unblocking the old-host 301 retirement in §2) plus **first builds of Benefits Navigator and Disability Wiki**. Full architecture + the proven device-free archive→upload runbook: [docs/mobile-and-testflight.md](docs/mobile-and-testflight.md).
+
+**Same-day follow-ups (2026-07-18 PM):**
+- **DW 1.0 (2)** — fixed "every link goes home": Capacitor's default router is SPA-only; `WikiRouter` (DW PR #46, merged) resolves directory indexes and 404s honestly. Shared lesson captured.
+- **TestFlight distribution now API-automated** — `scripts/asc-api.py` (ASC key `3SAY53224G`, App Manager). Root cause of "builds ready but never on the phone": **new app records had no beta groups**; created Internal groups (all-builds) + enrolled the aol tester for BN/DW via API, and swept export-compliance flags on every build (`usesNonExemptEncryption=false` via PATCH — no more per-build clicking). AA build 3 had been silently withheld on that flag.
+- **BN 1.0 (2)** wraps `vabenefitsnavigator.org` (PR #33 merged); build (1) wrapped the DO URL where login can't complete — expired/do-not-distribute.
+- **Icon family v4 approved** — masters in [design/app-icons/](design/app-icons/); not yet wired into asset catalogs (needs a build round).
 
 | App (TestFlight name) | Build type | Source repo (⚠ remote?) | Loads / contains | How an edit reaches testers |
 |---|---|---|---|---|

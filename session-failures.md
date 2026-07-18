@@ -258,3 +258,15 @@ product code. When a brand-new harness reports a failure, suspect the harness fi
 - Minor: `timeout` is not present on macOS (GNU coreutils only).
 
 ---
+## Session: 2026-07-18 (PM — TestFlight distribution + DW router + icons)
+
+**Project:** bas-platform / disability-wiki / benefits-navigator
+
+### Failures
+- **[TestFlight] "Ready to Test" builds never reached the phone** — walked the user through 3 rounds of ASC screens (Users & Access ≠ tester enrollment ≠ build attachment) before getting an API key and *reading the actual state*: the two new app records had **no beta groups at all**, and AA build 3 was withheld on an unanswered compliance flag. → With `scripts/asc-api.py`: created groups, enrolled tester, PATCHed `usesNonExemptEncryption` on every build. Lesson shape: screen-walking is guessing; get API access and read state.
+- **[scratchpad] Session reset wiped the scratchpad mid-flight** — killed a chained archive→upload task after the archive step (DW 1.0(2) sat unuploaded while logs claimed nothing), and destroyed the icon SVG masters. → Verified upload state via ASC API (not local logs), re-ran export; icons regenerated from context into `design/app-icons/` (git, not scratchpad, for session work products).
+- **[xcodebuild] DW export failed "server with the specified hostname could not be found"** — transient DNS on Apple's upload endpoint → plain retry succeeded.
+- **[icons] Two design mis-reads shipped to review** — KA split-seam heart read as a *broken* heart; stroked hands read as handset hooks. → Caught by rasterizing and *looking* before sending; fix was concept change, not tweaks.
+- **[preview pane] Static-snapshot pages can't be screenshotted** (navigate → "No site is open") → `qlmanage -t` raster + Read the PNG instead.
+
+---

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- KindredAccess — two cupped hands lifting a heart. Solid crescent palms.
+       Mutual aid: care held together. -->
+  <rect width="1024" height="1024" fill="#96442F"/>
+  <path d="M512 636 C 356 522, 298 424, 298 342 C 298 274, 354 224, 420 224 C 459 224, 496 243, 512 276 C 528 243, 565 224, 604 224 C 670 224, 726 274, 726 342 C 726 424, 668 522, 512 636 Z" fill="#E8B44A"/>
+  <path d="M 236 566 C 232 700, 332 786, 496 800 L 496 716 C 386 704, 316 654, 308 556 Z" fill="#F5F1E8"/>
+  <path d="M 788 566 C 792 700, 692 786, 528 800 L 528 716 C 638 704, 708 654, 716 556 Z" fill="#F5F1E8"/>
+</svg>
