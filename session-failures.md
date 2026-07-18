@@ -270,3 +270,15 @@ product code. When a brand-new harness reports a failure, suspect the harness fi
 - **[preview pane] Static-snapshot pages can't be screenshotted** (navigate → "No site is open") → `qlmanage -t` raster + Read the PNG instead.
 
 ---
+## Session: 2026-07-18 (PM — www→apex canonical-host redirects)
+
+**Project:** bas-platform / benefits-navigator / kindredaccess
+
+### Failures
+- **[shell] `timeout` again** — used `timeout 180 ./platform-status.sh` on a call that *already had* the Bash tool's native `timeout` param set. macOS has no GNU `timeout`; exit 127. → Dropped the shell word, kept the tool param. 4th occurrence; the shared lesson was sharpened from "prefer the tool's own flag" to "the word `timeout` in a command string is always wrong here."
+- **[DO web console] Console button opens an unreachable popup, and sessions drop mid-task** — the dashboard's "Web Console" button spawns a window the browser extension can't see; the console then disconnected once mid-edit. → Navigate the same tab straight to `/droplets/<id>/terminal/ui/?os_user=root`; keep each command atomic so a drop never lands between a write and its validation.
+- **[nginx] Live droplet config ≠ the repo's `deploy/` mirror** — nearly patched from the committed conf, which documents an idealized layout; the droplet runs certbot's rewrite with different socket paths and `if ($host = …)` blocks. Patching from the mirror would have clobbered working TLS config. → Mapped the live file with `grep -n` first, patched that, re-synced the mirror separately.
+- **[git] Hub push timed out at 2m** after the commit succeeded — looked like a failed commit. → Re-ran `git push` alone; it went through. Commit and push are separate outcomes when they're chained with `&&`.
+- Minor: `doctl apps spec validate` rejects a spec pulled from a live app (encrypted `EV[...]` secrets are "not allowed before app is created"); `doctl apps propose --app <id>` is the validator that works on an existing app — and its `--output json` is what proves an ingress field parsed rather than being silently dropped.
+
+---
