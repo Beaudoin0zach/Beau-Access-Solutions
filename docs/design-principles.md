@@ -126,6 +126,21 @@ status types route through it. Requirements:
   auth puzzles (SC 3.3.8 — passkeys/OTP-autofill satisfy this cleanly).
 - Contrast ≥ 4.5:1 text / 3:1 large text & UI components — verified in **both** light and dark themes.
 
+### 4.1 The four contracts the standard assumes
+
+Each of these shipped wrong at least once. They are the implementation details the standard above
+takes for granted; treat each as a gate. Where a gate exists it is named — note every one is
+**per-repo**, so the rule still applies unenforced on every other surface.
+
+| # | Contract | Gate |
+|---|---|---|
+| **C1** | **Two regions, both pre-created.** A polite-only region announces failures as politely as successes. Keep a second `role="alert"`/assertive region and route **only genuine failures** to it (partial progress stays polite). **Both must be in the DOM before the first message** — a region injected together with its content is dropped by screen readers. | page-repair `test/unit.mjs` "live-region spine" section (CI) |
+| **C2** | **Streaming announces once, on completion — and an announcement is not focus management.** Keep the region `aria-busy` and the live region silent while it fills; announce **once** on done. Separately, on *every* state transition move focus somewhere sensible (finished answer on done, recovery control on failure) — never leave it on a removed control. | BN `tests/js/assistant.a11y.test.mjs` (`npm run test:js`) |
+| **C3** | **Routing a status type through the utility means the visible node goes AT-silent.** `role="status"` *is itself* a polite live region, so a visible node that keeps it while also feeding the shared utility is read **twice**. Strip `role="status"`/`aria-live` from the visible element (`aria-hidden="true"` or plain text) so exactly one path speaks. Same trap for a `role="log"` transcript that already voices messages. | ⚠️ **none — unenforced everywhere** |
+| **C4** | **Declare `color-scheme`; compute contrast in both themes.** Without a `color-scheme` declaration a UI is only verified in whichever theme you happened to view, and browsers may auto-darken it. Declare `color-scheme: light dark` (meta + `:root`), drive colors from tokens with a `prefers-color-scheme: dark` override, and verify every text (≥4.5:1) and UI-boundary (≥3:1) pair **numerically**, not by eye. | page-repair `test/contrast.mjs` (recomputes every pair) |
+
+Full failure stories and per-repo enforcement scope live in [`LESSONS.md`](../LESSONS.md).
+
 ---
 
 ## 5. How this applies per app
