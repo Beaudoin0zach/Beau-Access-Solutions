@@ -1,33 +1,38 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
-  <!-- Benefit Navigator — modern combat helmet (ACH/PASGT), side profile.
-       Modern read = SQUAT, wide, deep dome with near-vertical lower sides and
-       a tight rim hugging the shell (vs the M1's tall bowl + flared brim),
-       plus the multi-point chinstrap harness. Gold star on the shell. -->
+  <!-- Benefit Navigator — modern combat helmet (ACH/PASGT), 3/4 view facing
+       left. Reference cues that survive icon scale: deep dome with steep
+       sides, a front brim lip projecting down-left, a thin rim edge (not the
+       M1's flared band), and a strap harness with side buckles + chin cup.
+       The ear cutout is deliberately omitted — at icon scale every attempt at
+       it read as an arch through the shell (three passes, see git history). -->
   <rect width="1024" height="1024" fill="#20355E"/>
 
-  <!-- chinstrap harness (hangs below the rim) -->
+  <!-- chinstrap harness (behind the shell) -->
   <g stroke="#CFC7B4" stroke-width="24" fill="none" stroke-linecap="round">
-    <path d="M 300 674 L 294 746"/>
-    <path d="M 724 674 L 730 746"/>
-    <path d="M 294 746 C 342 802, 682 802, 730 746"/>
+    <path d="M 302 654 L 294 734"/>
+    <path d="M 704 650 L 714 734"/>
+    <path d="M 294 734 C 344 794, 664 794, 714 734"/>
   </g>
-  <rect x="470" y="760" width="118" height="48" rx="16" fill="#CFC7B4"/>
+  <rect x="272" y="690" width="46" height="32" rx="9" fill="#CFC7B4"/>
+  <rect x="692" y="690" width="46" height="32" rx="9" fill="#CFC7B4"/>
+  <rect x="452" y="752" width="130" height="50" rx="17" fill="#CFC7B4"/>
 
-  <!-- shell: squat wide dome, near-vertical lower sides -->
-  <path d="M 512 272
-           C 316 272, 178 400, 174 556
-           L 172 628
-           L 852 628
-           L 850 556
-           C 846 400, 708 272, 512 272 Z" fill="#F5F1E8"/>
+  <!-- shell: steep sides, brim lip at the front, level base -->
+  <path d="M 508 230
+           C 318 230, 178 372, 172 542
+           C 170 576, 166 602, 158 622
+           C 147 642, 158 662, 184 666
+           C 218 672, 254 666, 286 658
+           L 800 654
+           C 834 650, 862 620, 864 574
+           C 864 372, 698 230, 508 230 Z" fill="#F5F1E8"/>
 
-  <!-- rim: tight level band hugging the shell, shadowed underside -->
-  <rect x="162" y="620" width="700" height="50" rx="25" fill="#F5F1E8"/>
-  <path d="M 162 646 C 162 660, 174 670, 188 670 L 836 670
-           C 850 670, 862 660, 862 646 Z" fill="#CFC7B4"/>
+  <!-- rim thickness along the base + under the brim -->
+  <path d="M 184 666 C 218 672, 254 666, 286 658 L 800 654"
+        fill="none" stroke="#CFC7B4" stroke-width="22" stroke-linecap="round"/>
 
   <!-- gold star -->
-  <path d="M 512 354 L 529.6 405.7 L 584.3 406.5 L 540.5 439.3 L 556.7 491.5
-           L 512 460 L 467.3 491.5 L 483.5 439.3 L 439.7 406.5 L 494.4 405.7 Z"
+  <path d="M 502 340 L 520.8 394.1 L 578.1 395.3 L 532.4 429.9 L 549 484.7
+           L 502 452 L 455 484.7 L 471.6 429.9 L 425.9 395.3 L 483.2 394.1 Z"
         fill="#E8B44A"/>
 </svg>
