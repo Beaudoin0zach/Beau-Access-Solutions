@@ -75,10 +75,21 @@ Gates audited 2026-07-18 by reading the tests; **partials marked**. CIT included
   `bg-sage-light/30` computed 3.93:1; the same token on white passes comfortably. Any `/opacity`
   utility or translucent card is a distinct background that must be alpha-composited before
   comparing. A white-and-cream-only sweep reported "clean" while this was live.
-  *Enforced:* bas-website `test/contrast.mjs` (18 pairs + the undefined-token scan, alpha blended),
-  wired into `npm run build` — which is *Netlify's* build command, so a regression cannot publish.
-  Verified fail-closed by injecting both regression types rather than assuming.
+  *Enforced:* bas-website `test/contrast.mjs` (36 pairs × 2 themes + the undefined-token scan, alpha
+  blended per theme), wired into `npm run build` — which is *Netlify's* build command, so a
+  regression cannot publish. Verified fail-closed by injecting both regression types.
   (bas-website, 2026-07-18)
+  **(c) A second theme audits the pair list itself — which is why C4 asks for both.** Adding dark
+  mode to bas-website immediately surfaced a **light-theme** failure that had been live all along
+  and had survived a full design review plus two contrast passes: the logo's white "B" on `#5d8a61`
+  at **3.98:1**. Nobody had listed that pair. A sweep only checks pairs someone remembered; forcing
+  every token through a second theme is what finds the ones nobody wrote down. Corollary for the
+  migration itself: **half a theme is worse than none** — 47% of that site's colour was raw
+  `text-gray-900`/`bg-white`, which structurally cannot flip, so dark mode had to start with a
+  semantic layer (canvas/surface/ink/body/muted/line + accent/**on-accent**) rather than with
+  colours. `text-white` hardcoded on a button is the specific killer: in dark the accent becomes a
+  *light* green and its label must flip to near-black. *Enforced:* the gate fails if any semantic
+  token has no dark value. (bas-website, 2026-07-19)
 
 ## Identity, OIDC & mobile wrappers
 

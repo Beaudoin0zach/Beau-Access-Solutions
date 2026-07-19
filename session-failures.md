@@ -364,3 +364,22 @@ product code. When a brand-new harness reports a failure, suspect the harness fi
 - **[tooling] Several `Bash` calls failed with "claude-opus-4-8 is temporarily unavailable"** mid-deploy-watch and again at commit time. Transient; retried successfully. Noted only because it interrupted a poll loop watching a production deploy.
 
 ---
+
+---
+## Session: 2026-07-19 (marketing site: contact form + real dark mode)
+
+**Project:** bas-platform / beau-access-solutions (bas-website)
+
+### Failures
+- **[sed] A 181-usage class migration reported success and changed nothing.** `sed -i '' 's/\btext-gray-900\b/text-ink/g'` across 10 files — **BSD sed does not support `\b`**, so every pattern matched zero times while sed still rewrote each file byte-identically. The mtime bump even made the harness announce "modified 10 files," which read as confirmation. Caught only because the verifying grep returned counts *identical* to the pre-run counts. → `perl -pi -e` for anything with a word boundary; and treat "command succeeded" as unverified until a re-count or diff proves the content changed. Logged to shared LESSONS under the existing macOS/GNU-tooling entry.
+- **[test] The contrast gate broke the moment dark tokens landed, and blamed the wrong thing.** Its token parser took the *last* `--color-X` match in the file; once the dark block existed that was the dark value, so it compared dark text against light backgrounds and reported 7 confident failures that were all artifacts. → Rewrote to parse `@theme` and the `prefers-color-scheme` block separately and evaluate pairs by token *name* per theme. A parser that assumes one value per token cannot survive a second theme.
+- **[perl] Multi-line insertion via `perl -pi -e` with `\n` in the replacement produced three bare `,` lines** in the pairs table, which then failed to parse. → Structural edits to a source file belong in Edit, not a regex one-liner; regex is for the repetitive single-line substitutions.
+- **[browser] Three tool failures in a row on the visual check** — `computer{scroll}` timed out twice at 30s, `scrollIntoView` silently reset scrollY to 2, and one screenshot returned a fully blank dark frame mid-transition. → Fell back to reading `getComputedStyle` for every surface, which is the stronger evidence anyway: it states the actual colour rather than my reading of a picture.
+- **[near-miss] Almost "fixed" a bug that did not exist.** A light-mode screenshot taken mid-theme-switch showed the wordmark washed out to near-cream on white. Checked `getComputedStyle` before touching it — `rgb(17,24,39)`, correct; the frame was a stale composite. Editing on the strength of that screenshot would have broken working code. Same discipline that was *missing* from the earlier `curl` deploy check, applied in time here.
+- **[env] Repeated classifier unavailability** stalled commit/push for several minutes across two windows; work was already staged and verified, so nothing was lost — but the first Monitor-based wait was reported as "stopped" with no completion record, and the commit had silently not landed. → Re-check `git log` before assuming a queued commit went through.
+
+### Went right
+- The both-theme gate paid for itself on first run: 4 real failures, one of them a **pre-existing light-mode** defect (logo at 3.98:1) that had survived a full design review and two contrast passes.
+- Staging discipline held under a live peer session: 4 files (`env.d.ts` + 3 blog posts) that were mode-flip noise rather than my edits were caught by a `--numstat` zero-zero check and unstaged before commit.
+
+---
