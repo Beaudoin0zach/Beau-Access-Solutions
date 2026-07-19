@@ -4,6 +4,36 @@ Append-only record of things that went wrong, so patterns become visible across 
 
 ---
 
+## Session: 2026-07-19 (disability-wiki style-eval remediation)
+
+**Project:** disability-wiki (dead-link repair, sourcing floor, CI checker fix) — worktree `upbeat-mclean-8602aa`
+
+### Failures
+
+- **My own liveness checker produced false-dead verdicts by probing apex-only.** A throwaway
+  `check_live.sh` built `https://<apex>` from bare domains and marked any failure "dead." Four live
+  sites came back dead — including a UK government-backed equality helpline (`equalityadvisoryservice.com`,
+  live only at `www.`), plus `lawhelp.org` and two `.gc.ca` sites where my `curl` was blocked, not the
+  site. → Caught when a research subagent tested `www.` directly. Fixed the *in-repo* checker
+  (`scripts/check_claims.py`): www-fallback, HEAD→GET retry, and DNS-failure (real death) separated
+  from connection-failure (may be us). Added 7 offline regression tests, wired blocking into CI, and
+  captured the shared lesson. The bug was reproducible in the repo's own tooling, not just my scratch script.
+- **The "obvious" typo correction was a trap.** `housingomobudsman.org.uk` (a real typo) → the obvious
+  de-typo `housingombudsman.org.uk` resolves, but to an *expired domain parked on an ad network*
+  (`ww1.` redirect, `?subid`). Nearly shipped it as the fix. → Held off; the correct hyphenated form
+  `housing-ombudsman.org.uk` was corroborated by another page in the same repo, written by a different
+  hand. In-repo corroboration beat a lone HTTP 200.
+- **Bulk linkifier matched non-content.** The bare-domain linkify script turned a TLS certificate SAN
+  list in `SECURITY.md` (`disabilitywiki.org, www.disabilitywiki.org`) into a hyperlink. → Caught in
+  diff review before commit and reverted. Validated the choice to make the new CI bare-domain check
+  *advisory*, not blocking — some bare domains are correct as prose.
+- **CHANGELOG.md conflict from three concurrent workstreams.** PR #55 (my work stacked on the pacing
+  branch) conflicted against main because three sessions all appended `### Added` entries at the same
+  line this week. → Resolved as a union (both entries kept, no dup), verified the merged tree builds,
+  re-checked the remote for a race, then fast-forward pushed. Recurring pattern, not a one-off.
+
+---
+
 ## Session: 2026-07-19
 
 **Project:** Chronic-Illness-Tracker (a11y-spine fix + landing/privacy voice copy) — style-eval remediation
